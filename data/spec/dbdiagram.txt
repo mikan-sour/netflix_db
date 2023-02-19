@@ -1,0 +1,141 @@
+// master schema
+Table master.countries {
+  id int [pk, increment]
+  country_code varchar(2) [not null, unique, note:"alpha-2"]
+  country_name varchar(100) [unique]
+  region varchar(100)
+  sub_region varchar(100)
+  created_by int [default: 1]
+  created_at timestamp [default: `now()`]
+  updated_by int [default: 1]
+  updated_at timestamp [default: `now()`]
+}
+
+Table netflix.titles_countries {
+  title_id int [not null]
+  country_id int [not null]
+  
+  indexes {
+    (country_id, title_id) [pk] // composite primary key
+  }
+}
+
+Ref: netflix.titles_countries.title_id > netflix.titles.id [delete: cascade, update: no action]
+Ref: netflix.titles_countries.country_id > master.countries.id [delete: cascade, update: no action]
+
+
+Table master.genre {
+  id int [pk, increment]
+  genre varchar(20) [not null]
+  created_by int [default: 1]
+  created_at timestamp [default: `now()`]
+  updated_by int [default: 1]
+  updated_at timestamp [default: `now()`]
+}
+
+
+Table netflix.titles_genre {
+  title_id int [not null]
+  genre_id int [not null]
+  
+  indexes {
+    (genre_id, title_id) [pk] // composite primary key
+  }
+}
+
+Table netflix.titles {
+  id int [pk, increment]
+  title varchar(255) [not null]
+  type master.title_type [not null]
+  release_year int [not null]
+  mpa_rating master.mpa_rating [not null]
+  runtime int [not null, note: 'in minutes']
+  seasons float8
+  imdb_id varchar(10) [unique]
+  imdb_score float8
+  imdb_votes int
+}
+
+Ref: netflix.titles_genre.title_id > netflix.titles.id [delete: cascade, update: no action]
+Ref: netflix.titles_genre.genre_id > master.genre.id [delete: cascade, update: no action]
+
+Table netflix.people {
+  id int [pk, increment]
+  name varchar(255) [not null]
+}
+
+Table netflix.credits {
+  id int [pk, increment]
+  title_id int [not null]
+  person_id int [not null]
+  character text
+  role master.credit_type [not null]
+}
+
+Ref: netflix.credits.person_id > netflix.people.id [delete: cascade, update: no action]
+Ref: netflix.credits.title_id > netflix.titles.id [delete: cascade, update: no action]
+
+table netflix.titles_likes {
+  user_id int [not null]
+  title_id int [not null]
+  reaction master.reaction [not null]
+  
+  indexes {
+    (user_id, title_id) [pk] // composite primary key
+  }
+}
+
+table netflix.people_likes {
+  user_id int [not null]
+  person_id int [not null]
+  reaction master.reaction [not null]
+  
+  indexes {
+    (user_id, person_id) [pk] // composite primary key
+  }
+}
+
+table master.users {
+  id int [pk, increment]
+  username varchar(25)
+  password varchar(255)
+  active boolean [default: true]
+  is_admin boolean [default: false]
+  last_logged_in timestamp [default: `now()`]
+}
+
+Ref: netflix.titles_likes.user_id > master.users.id [delete: cascade, update: no action]
+Ref: netflix.titles_likes.title_id > netflix.titles.id [delete: cascade, update: no action]
+
+Ref: netflix.people_likes.user_id > master.users.id [delete: cascade, update: no action]
+Ref: netflix.people_likes.person_id > netflix.people.id [delete: cascade, update: no action]
+
+enum master.mpa_rating {
+    G
+    PG
+    PG_13
+    R
+    NC_17
+    TV_MA 
+    TV_14 
+    TV_PG
+    TV_Y
+    TV_G
+    TV_Y7
+    NOT_RATED
+}
+
+enum master.credit_type {
+    ACTOR
+    DIRECTOR
+}
+
+enum master.reaction {
+    LIKE
+    DISLIKE
+}
+
+enum master.title_type {
+    MOVIE [note: 'is movie']
+    SHOW [note: 'is tv show']
+}

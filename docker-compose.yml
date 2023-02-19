@@ -1,0 +1,26 @@
+version: '3.5'
+
+services:
+
+  # process_data:
+  #   build:
+  #     context: ./data/setup
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #      - ./data/processed_data:/app/processed_data
+  #      - ./data/raw_data:/app/raw_data
+  #      - ./data/setup/process.py:/app/setup/process.py
+  #      - ./data/setup/requirements.txt:/app/setup/requirements.txt
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: netflix_db
+    volumes:
+       - ./data/setup/init.sql:/docker-entrypoint-initdb.d/init.sql
+       - ./data/processed_data:/etc/processed_data
+    ports:
+      - "5432:5432"
+    
